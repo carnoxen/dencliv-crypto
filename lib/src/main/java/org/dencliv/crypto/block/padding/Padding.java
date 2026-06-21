@@ -1,6 +1,8 @@
 package org.dencliv.crypto.block.padding;
 
 public enum Padding {
+    No(new NoFunction()),
+    ISO10126(new ISO10126Function()),
     PKCS5(new PKCS5Function());
 
     private final PaddingFunction function;
@@ -15,9 +17,5 @@ public enum Padding {
 
     public byte[] remove(byte[] input, int blockSize) {
         return function.remove(input, blockSize);
-    }
-
-    public String transformationName() {
-        return name() + "Padding";
     }
 }

@@ -50,8 +50,8 @@ public final class BlockCipher {
     public Cipher getFallback() throws NoSuchAlgorithmException, NoSuchPaddingException {
         String algorithmName = algorithm.name();
         String operationName = operation.name();
-        String paddingName = padding.transformationName();
+        String paddingName = padding.name();
         
-        return Cipher.getInstance("%s/%s/%s".formatted(algorithmName, operationName, paddingName));
+        return Cipher.getInstance("%s/%s/%sPadding".formatted(algorithmName, operationName, paddingName));
     }
 }

@@ -17,12 +17,14 @@ import static org.dencliv.crypto.block.operation.Operation.CCM;
 import static org.dencliv.crypto.block.operation.Operation.CTR;
 import static org.dencliv.crypto.block.operation.Operation.GCM;
 import static org.dencliv.crypto.block.operation.Operation.OFB;
+import static org.dencliv.crypto.block.padding.Padding.ISO10126;
+import static org.dencliv.crypto.block.padding.Padding.No;
 import static org.dencliv.crypto.block.padding.Padding.PKCS5;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class LibraryTest {
+class OperationTest {
     @Test
     void encryptsAndDecryptsAriaBlocks() {
         var plaintext = hex("00112233445566778899aabbccddeeff");
@@ -99,16 +101,32 @@ class LibraryTest {
 
     @Test
     void encryptsAndDecryptsAesCtr() {
-        var cipher = Library.getBlockCipher(AES, CTR, PKCS5);
+        var cipher = Library.getBlockCipher(AES, CTR, No);
         var key = hex("2b7e151628aed2a6abf7158809cf4f3c");
         var counter = hex("f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
-        var plaintext = hex("6bc1bee22e409f96e93d7e117393172a");
+        var plaintext = hex("6bc1bee22e409f96e93d7e117393172aae2d8a57");
 
         var ciphertext = cipher.encrypt(key, counter, plaintext);
 
-        assertArrayEquals(hex("874d6191b620e3261bef6864990db6ce"),
-                java.util.Arrays.copyOf(ciphertext, 16));
+        assertArrayEquals(hex("874d6191b620e3261bef6864990db6ce9806f66b"), ciphertext);
         assertArrayEquals(plaintext, cipher.decrypt(key, counter, ciphertext));
+    }
+
+    @Test
+    void encryptsAesCtrLikeJavaNoPadding() throws Exception {
+        var cipher = Library.getBlockCipher(AES, CTR, No);
+        var key = hex("2b7e151628aed2a6abf7158809cf4f3c");
+        var counter = hex("f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
+        var plaintext = hex("6bc1bee22e409f96e93d7e117393172aae2d8a57");
+        var fallback = cipher.getFallback();
+
+        fallback.init(
+                Cipher.ENCRYPT_MODE,
+                new SecretKeySpec(key, AES.name()),
+                new IvParameterSpec(counter));
+
+        assertEquals("AES/CTR/NoPadding", fallback.getAlgorithm());
+        assertArrayEquals(fallback.doFinal(plaintext), cipher.encrypt(key, counter, plaintext));
     }
 
     @Test
@@ -177,6 +195,24 @@ class LibraryTest {
 
         assertEquals("AES/CBC/PKCS5Padding", fallback.getAlgorithm());
         assertArrayEquals(cipher.encrypt(key, iv, plaintext), fallback.doFinal(plaintext));
+    }
+
+    @Test
+    void interoperatesWithJavaIso10126Padding() throws Exception {
+        var cipher = Library.getBlockCipher(AES, CBC, ISO10126);
+        var key = hex("2b7e151628aed2a6abf7158809cf4f3c");
+        var iv = hex("000102030405060708090a0b0c0d0e0f");
+        var plaintext = hex("6bc1bee22e409f96e93d7e117393172aae2d8a57");
+        var fallback = cipher.getFallback();
+        var secretKey = new SecretKeySpec(key, AES.name());
+        var parameters = new IvParameterSpec(iv);
+
+        fallback.init(Cipher.DECRYPT_MODE, secretKey, parameters);
+        assertEquals("AES/CBC/ISO10126Padding", fallback.getAlgorithm());
+        assertArrayEquals(plaintext, fallback.doFinal(cipher.encrypt(key, iv, plaintext)));
+
+        fallback.init(Cipher.ENCRYPT_MODE, secretKey, parameters);
+        assertArrayEquals(plaintext, cipher.decrypt(key, iv, fallback.doFinal(plaintext)));
     }
 
     @Test
