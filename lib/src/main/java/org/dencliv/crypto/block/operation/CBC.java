@@ -2,11 +2,11 @@ package org.dencliv.crypto.block.operation;
 
 import java.util.Arrays;
 
-import org.dencliv.crypto.block.algorithm.AlgorithmFunction;
+import org.dencliv.crypto.block.algorithm.Algorithm;
 
-final class CBCFunction implements OperationFunction {
+public final class CBC implements Operation {
     @Override
-    public byte[] encrypt(AlgorithmFunction algorithm, byte[] iv, byte[] input) {
+    public byte[] encrypt(Algorithm algorithm, byte[] iv, byte[] input) {
         var blockSize = algorithm.blockSize();
         validate(iv, input, blockSize);
         var output = new byte[input.length];
@@ -22,7 +22,7 @@ final class CBCFunction implements OperationFunction {
     }
 
     @Override
-    public byte[] decrypt(AlgorithmFunction algorithm, byte[] iv, byte[] input) {
+    public byte[] decrypt(Algorithm algorithm, byte[] iv, byte[] input) {
         var blockSize = algorithm.blockSize();
         validate(iv, input, blockSize);
         var output = new byte[input.length];

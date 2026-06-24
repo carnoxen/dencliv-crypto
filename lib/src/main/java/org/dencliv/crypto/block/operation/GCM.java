@@ -3,14 +3,14 @@ package org.dencliv.crypto.block.operation;
 import java.security.MessageDigest;
 import java.util.Arrays;
 
-import org.dencliv.crypto.block.algorithm.AlgorithmFunction;
+import org.dencliv.crypto.block.algorithm.Algorithm;
 
-final class GCMFunction implements OperationFunction {
+public final class GCM implements Operation {
     private static final int BLOCK_SIZE = 16;
     private static final int TAG_SIZE = 16;
 
     @Override
-    public byte[] encrypt(AlgorithmFunction algorithm, byte[] iv, byte[] input) {
+    public byte[] encrypt(Algorithm algorithm, byte[] iv, byte[] input) {
         validate(algorithm, iv);
         var hashKey = encrypt(algorithm, new byte[BLOCK_SIZE]);
         var initialCounter = initialCounter(hashKey, iv);
@@ -22,7 +22,7 @@ final class GCMFunction implements OperationFunction {
     }
 
     @Override
-    public byte[] decrypt(AlgorithmFunction algorithm, byte[] iv, byte[] input) {
+    public byte[] decrypt(Algorithm algorithm, byte[] iv, byte[] input) {
         validate(algorithm, iv);
         if (input.length < TAG_SIZE) {
             throw new IllegalArgumentException("Input must contain an authentication tag");
@@ -38,7 +38,7 @@ final class GCMFunction implements OperationFunction {
         return crypt(algorithm, initialCounter, ciphertext);
     }
 
-    private static void validate(AlgorithmFunction algorithm, byte[] iv) {
+    private static void validate(Algorithm algorithm, byte[] iv) {
         if (algorithm.blockSize() != BLOCK_SIZE) {
             throw new IllegalArgumentException("GCM requires a 16-byte block cipher");
         }
@@ -60,7 +60,7 @@ final class GCMFunction implements OperationFunction {
         return ghash(hashKey, blocks);
     }
 
-    private static byte[] crypt(AlgorithmFunction algorithm, byte[] initialCounter, byte[] input) {
+    private static byte[] crypt(Algorithm algorithm, byte[] initialCounter, byte[] input) {
         var output = new byte[input.length];
         var counter = initialCounter.clone();
         var keyStream = new byte[BLOCK_SIZE];
@@ -76,7 +76,7 @@ final class GCMFunction implements OperationFunction {
     }
 
     private static byte[] tag(
-            AlgorithmFunction algorithm,
+            Algorithm algorithm,
             byte[] hashKey,
             byte[] initialCounter,
             byte[] ciphertext) {
@@ -133,7 +133,7 @@ final class GCMFunction implements OperationFunction {
         }
     }
 
-    private static byte[] encrypt(AlgorithmFunction algorithm, byte[] block) {
+    private static byte[] encrypt(Algorithm algorithm, byte[] block) {
         var output = new byte[BLOCK_SIZE];
         algorithm.encryptBlock(block, 0, output, 0);
         return output;

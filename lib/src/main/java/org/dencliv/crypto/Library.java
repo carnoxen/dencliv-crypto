@@ -12,9 +12,9 @@ public final class Library {
     }
 
     public static BlockCipher getBlockCipher(
-            Algorithm algorithm,
-            Operation operation,
-            Padding padding) {
+            Class<? extends Algorithm> algorithm,
+            Class<? extends Operation> operation,
+            Class<? extends Padding> padding) {
         return new BlockCipher(
                 Objects.requireNonNull(algorithm, "algorithm"),
                 Objects.requireNonNull(operation, "operation"),

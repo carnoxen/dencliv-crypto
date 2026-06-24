@@ -2,7 +2,7 @@ package org.dencliv.crypto.block.algorithm;
 
 import java.util.HexFormat;
 
-final class SEEDFunction implements AlgorithmFunction {
+public final class SEED implements Algorithm {
     private static final int BLOCK_SIZE = 16;
     private static final int[] KC = {
             0x9e3779b9, 0x3c6ef373, 0x78dde6e6, 0xf1bbcdcc,
@@ -49,7 +49,7 @@ final class SEEDFunction implements AlgorithmFunction {
 
     private final int[] roundKeys = new int[32];
 
-    SEEDFunction(byte[] key) {
+    public SEED(byte[] key) {
         if (key.length != BLOCK_SIZE) {
             throw new IllegalArgumentException("SEED key must be 16 bytes");
         }

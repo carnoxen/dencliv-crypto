@@ -10,48 +10,52 @@ import org.dencliv.crypto.block.operation.Operation;
 import org.dencliv.crypto.block.padding.Padding;
 
 public final class BlockCipher {
-    private final Algorithm algorithm;
-    private final Operation operation;
-    private final Padding padding;
+    private final Class<? extends Algorithm> algorithm;
+    private final Class<? extends Operation> operation;
+    private final Class<? extends Padding> padding;
 
-    public BlockCipher(Algorithm algorithm, Operation operation, Padding padding) {
+    public BlockCipher(
+            Class<? extends Algorithm> algorithm,
+            Class<? extends Operation> operation,
+            Class<? extends Padding> padding) {
         this.algorithm = algorithm;
         this.operation = operation;
         this.padding = padding;
     }
 
     public byte[] encrypt(byte[] key, byte[] iv, byte[] input) {
-        var blockAlgorithm = algorithm.create(key);
-        return operation.encrypt(
+        var blockAlgorithm = Algorithm.create(algorithm, key);
+        var blockPadding = Padding.create(padding);
+        return Operation.create(operation).encrypt(
                 blockAlgorithm,
                 iv,
-                padding.add(input, blockAlgorithm.blockSize()));
+                blockPadding.add(input, blockAlgorithm.blockSize()));
     }
 
     public byte[] decrypt(byte[] key, byte[] iv, byte[] input) {
-        var blockAlgorithm = algorithm.create(key);
-        return padding.remove(
-                operation.decrypt(blockAlgorithm, iv, input),
+        var blockAlgorithm = Algorithm.create(algorithm, key);
+        var blockPadding = Padding.create(padding);
+        return blockPadding.remove(
+                Operation.create(operation).decrypt(blockAlgorithm, iv, input),
                 blockAlgorithm.blockSize());
     }
 
-    public Algorithm algorithm() {
+    public Class<? extends Algorithm> algorithm() {
         return algorithm;
     }
 
-    public Operation operation() {
+    public Class<? extends Operation> operation() {
         return operation;
     }
 
-    public Padding padding() {
+    public Class<? extends Padding> padding() {
         return padding;
     }
 
     public Cipher getFallback() throws NoSuchAlgorithmException, NoSuchPaddingException {
-        String algorithmName = algorithm.name();
-        String operationName = operation.name();
-        String paddingName = padding.name();
-        
-        return Cipher.getInstance("%s/%s/%sPadding".formatted(algorithmName, operationName, paddingName));
+        return Cipher.getInstance("%s/%s/%s".formatted(
+                algorithm.getSimpleName(),
+                operation.getSimpleName(),
+                padding.getSimpleName()));
     }
 }

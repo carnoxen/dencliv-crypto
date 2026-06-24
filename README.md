@@ -18,12 +18,11 @@ Create a cipher by choosing an algorithm, operation mode, and padding:
 
 ```java
 import org.dencliv.crypto.Library;
+import org.dencliv.crypto.block.algorithm.AES;
+import org.dencliv.crypto.block.operation.GCM;
+import org.dencliv.crypto.block.padding.NoPadding;
 
-import static org.dencliv.crypto.block.algorithm.Algorithm.AES;
-import static org.dencliv.crypto.block.operation.Operation.GCM;
-import static org.dencliv.crypto.block.padding.Padding.No;
-
-var cipher = Library.getBlockCipher(AES, GCM, No);
+var cipher = Library.getBlockCipher(AES.class, GCM.class, NoPadding.class);
 
 byte[] key = new byte[16];
 byte[] nonce = new byte[12];
@@ -36,10 +35,10 @@ byte[] decrypted = cipher.decrypt(key, nonce, ciphertext);
 For CBC with PKCS5 padding:
 
 ```java
-import static org.dencliv.crypto.block.operation.Operation.CBC;
-import static org.dencliv.crypto.block.padding.Padding.PKCS5;
+import org.dencliv.crypto.block.operation.CBC;
+import org.dencliv.crypto.block.padding.PKCS5Padding;
 
-var cipher = Library.getBlockCipher(AES, CBC, PKCS5);
+var cipher = Library.getBlockCipher(AES.class, CBC.class, PKCS5Padding.class);
 
 byte[] key = java.util.HexFormat.of().parseHex(
         "000102030405060708090a0b0c0d0e0f");
@@ -63,28 +62,30 @@ keep the example short.
 | --- | --- |
 | AES | 128, 192, or 256 bits |
 | ARIA | 128, 192, or 256 bits |
+| Blowfish | 32 to 448 bits |
 | SEED | 128 bits |
 
 ### Operation modes
 
 | Mode | Notes |
 | --- | --- |
-| CBC | Requires a 16-byte IV and complete padded blocks |
-| CTR | Requires a 16-byte initial counter |
-| OFB | Requires a 16-byte IV |
-| CCM | Authenticated encryption; requires a 7-to-13-byte nonce |
-| GCM | Authenticated encryption; a 12-byte nonce is recommended |
+| CBC | Requires a one-block IV and complete padded blocks |
+| CTR | Requires a one-block initial counter |
+| OFB | Requires a one-block IV |
+| CCM | Authenticated encryption for 16-byte block ciphers; requires a 7-to-13-byte nonce |
+| GCM | Authenticated encryption for 16-byte block ciphers; a 12-byte nonce is recommended |
 
 CCM and GCM append a 16-byte authentication tag to the ciphertext and verify it
-during decryption.
+during decryption. Blowfish has an 8-byte block size, so it supports CBC, CTR,
+and OFB, but not CCM or GCM.
 
 ### Padding
 
 | Padding | Recommended use |
 | --- | --- |
-| `No` | CCM, CTR, GCM, OFB, or already block-aligned CBC input |
-| `PKCS5` | CBC input of any length |
-| `ISO10126` | CBC compatibility with systems that require ISO 10126 padding |
+| `NoPadding` | CCM, CTR, GCM, OFB, or already block-aligned CBC input |
+| `PKCS5Padding` | CBC input of any length |
+| `ISO10126Padding` | CBC compatibility with systems that require ISO 10126 padding |
 
 ## Build and test
 

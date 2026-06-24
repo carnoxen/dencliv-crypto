@@ -1,21 +1,15 @@
 package org.dencliv.crypto.block.padding;
 
-public enum Padding {
-    No(new NoFunction()),
-    ISO10126(new ISO10126Function()),
-    PKCS5(new PKCS5Function());
+public interface Padding {
+    byte[] add(byte[] input, int blockSize);
 
-    private final PaddingFunction function;
+    byte[] remove(byte[] input, int blockSize);
 
-    Padding(PaddingFunction function) {
-        this.function = function;
-    }
-
-    public byte[] add(byte[] input, int blockSize) {
-        return function.add(input, blockSize);
-    }
-
-    public byte[] remove(byte[] input, int blockSize) {
-        return function.remove(input, blockSize);
+    static Padding create(Class<? extends Padding> type) {
+        try {
+            return type.getConstructor().newInstance();
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalArgumentException("Unable to create padding: " + type.getName(), exception);
+        }
     }
 }

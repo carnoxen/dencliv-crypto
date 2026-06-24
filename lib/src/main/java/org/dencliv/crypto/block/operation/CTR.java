@@ -1,10 +1,10 @@
 package org.dencliv.crypto.block.operation;
 
-import org.dencliv.crypto.block.algorithm.AlgorithmFunction;
+import org.dencliv.crypto.block.algorithm.Algorithm;
 
-final class CTRFunction implements OperationFunction {
+public final class CTR implements Operation {
     @Override
-    public byte[] encrypt(AlgorithmFunction algorithm, byte[] iv, byte[] input) {
+    public byte[] encrypt(Algorithm algorithm, byte[] iv, byte[] input) {
         validateIv(iv, algorithm.blockSize());
         var output = new byte[input.length];
         var counter = iv.clone();
@@ -22,7 +22,7 @@ final class CTRFunction implements OperationFunction {
     }
 
     @Override
-    public byte[] decrypt(AlgorithmFunction algorithm, byte[] iv, byte[] input) {
+    public byte[] decrypt(Algorithm algorithm, byte[] iv, byte[] input) {
         return encrypt(algorithm, iv, input);
     }
 

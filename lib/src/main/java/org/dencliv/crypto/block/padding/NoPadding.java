@@ -1,6 +1,6 @@
 package org.dencliv.crypto.block.padding;
 
-final class NoFunction implements PaddingFunction {
+public final class NoPadding implements Padding {
     @Override
     public byte[] add(byte[] input, int blockSize) {
         return input.clone();

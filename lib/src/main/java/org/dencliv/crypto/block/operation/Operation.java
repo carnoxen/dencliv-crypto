@@ -1,25 +1,17 @@
 package org.dencliv.crypto.block.operation;
 
-import org.dencliv.crypto.block.algorithm.AlgorithmFunction;
+import org.dencliv.crypto.block.algorithm.Algorithm;
 
-public enum Operation {
-    CBC(new CBCFunction()),
-    CCM(new CCMFunction()),
-    CTR(new CTRFunction()),
-    GCM(new GCMFunction()),
-    OFB(new OFBFunction());
+public interface Operation {
+    byte[] encrypt(Algorithm algorithm, byte[] iv, byte[] input);
 
-    private final OperationFunction function;
+    byte[] decrypt(Algorithm algorithm, byte[] iv, byte[] input);
 
-    Operation(OperationFunction function) {
-        this.function = function;
-    }
-
-    public byte[] encrypt(AlgorithmFunction algorithm, byte[] iv, byte[] input) {
-        return function.encrypt(algorithm, iv, input);
-    }
-
-    public byte[] decrypt(AlgorithmFunction algorithm, byte[] iv, byte[] input) {
-        return function.decrypt(algorithm, iv, input);
+    static Operation create(Class<? extends Operation> type) {
+        try {
+            return type.getConstructor().newInstance();
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalArgumentException("Unable to create operation: " + type.getName(), exception);
+        }
     }
 }

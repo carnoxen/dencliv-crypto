@@ -1,13 +1,20 @@
 package org.dencliv.crypto.block.padding;
 
+import java.security.SecureRandom;
 import java.util.Arrays;
 
-final class PKCS5Function implements PaddingFunction {
+public final class ISO10126Padding implements Padding {
+    private static final SecureRandom RANDOM = new SecureRandom();
+
     @Override
     public byte[] add(byte[] input, int blockSize) {
         var count = blockSize - input.length % blockSize;
+        var padding = new byte[count];
+        RANDOM.nextBytes(padding);
+        padding[count - 1] = (byte) count;
+
         var output = Arrays.copyOf(input, input.length + count);
-        Arrays.fill(output, input.length, output.length, (byte) count);
+        System.arraycopy(padding, 0, output, input.length, count);
         return output;
     }
 
@@ -16,11 +23,6 @@ final class PKCS5Function implements PaddingFunction {
         var count = input[input.length - 1] & 0xff;
         if (count < 1 || count > blockSize) {
             throw new IllegalArgumentException("Invalid padding");
-        }
-        for (var index = input.length - count; index < input.length; index++) {
-            if ((input[index] & 0xff) != count) {
-                throw new IllegalArgumentException("Invalid padding");
-            }
         }
         return Arrays.copyOf(input, input.length - count);
     }

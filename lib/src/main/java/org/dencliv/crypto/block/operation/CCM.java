@@ -3,14 +3,14 @@ package org.dencliv.crypto.block.operation;
 import java.security.MessageDigest;
 import java.util.Arrays;
 
-import org.dencliv.crypto.block.algorithm.AlgorithmFunction;
+import org.dencliv.crypto.block.algorithm.Algorithm;
 
-final class CCMFunction implements OperationFunction {
+public final class CCM implements Operation {
     private static final int BLOCK_SIZE = 16;
     private static final int TAG_SIZE = 16;
 
     @Override
-    public byte[] encrypt(AlgorithmFunction algorithm, byte[] nonce, byte[] input) {
+    public byte[] encrypt(Algorithm algorithm, byte[] nonce, byte[] input) {
         var lengthSize = validate(algorithm, nonce, input.length);
         var tag = authenticationTag(algorithm, nonce, input, lengthSize);
         var ciphertext = crypt(algorithm, nonce, input, lengthSize);
@@ -21,7 +21,7 @@ final class CCMFunction implements OperationFunction {
     }
 
     @Override
-    public byte[] decrypt(AlgorithmFunction algorithm, byte[] nonce, byte[] input) {
+    public byte[] decrypt(Algorithm algorithm, byte[] nonce, byte[] input) {
         if (input.length < TAG_SIZE) {
             throw new IllegalArgumentException("Input must contain an authentication tag");
         }
@@ -38,7 +38,7 @@ final class CCMFunction implements OperationFunction {
         return plaintext;
     }
 
-    private static int validate(AlgorithmFunction algorithm, byte[] nonce, int inputLength) {
+    private static int validate(Algorithm algorithm, byte[] nonce, int inputLength) {
         if (algorithm.blockSize() != BLOCK_SIZE) {
             throw new IllegalArgumentException("CCM requires a 16-byte block cipher");
         }
@@ -54,7 +54,7 @@ final class CCMFunction implements OperationFunction {
     }
 
     private static byte[] authenticationTag(
-            AlgorithmFunction algorithm,
+            Algorithm algorithm,
             byte[] nonce,
             byte[] input,
             int lengthSize) {
@@ -78,7 +78,7 @@ final class CCMFunction implements OperationFunction {
     }
 
     private static byte[] crypt(
-            AlgorithmFunction algorithm,
+            Algorithm algorithm,
             byte[] nonce,
             byte[] input,
             int lengthSize) {
@@ -95,7 +95,7 @@ final class CCMFunction implements OperationFunction {
     }
 
     private static byte[] counterBlock(
-            AlgorithmFunction algorithm,
+            Algorithm algorithm,
             byte[] nonce,
             int lengthSize,
             int counter) {

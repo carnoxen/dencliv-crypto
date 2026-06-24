@@ -1,19 +1,24 @@
 package org.dencliv.crypto.block.algorithm;
 
-import java.util.function.Function;
+import java.lang.reflect.InvocationTargetException;
 
-public enum Algorithm {
-    AES(AESFunction::new),
-    ARIA(ARIAFunction::new),
-    SEED(SEEDFunction::new);
+public interface Algorithm {
+    int blockSize();
 
-    private final Function<byte[], AlgorithmFunction> factory;
+    void encryptBlock(byte[] input, int inputOffset, byte[] output, int outputOffset);
 
-    Algorithm(Function<byte[], AlgorithmFunction> factory) {
-        this.factory = factory;
-    }
+    void decryptBlock(byte[] input, int inputOffset, byte[] output, int outputOffset);
 
-    public AlgorithmFunction create(byte[] key) {
-        return factory.apply(key);
+    static Algorithm create(Class<? extends Algorithm> type, byte[] key) {
+        try {
+            return type.getConstructor(byte[].class).newInstance(key);
+        } catch (InvocationTargetException exception) {
+            if (exception.getCause() instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            throw new IllegalArgumentException("Unable to create algorithm: " + type.getName(), exception.getCause());
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalArgumentException("Unable to create algorithm: " + type.getName(), exception);
+        }
     }
 }

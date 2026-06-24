@@ -1,6 +1,6 @@
 package org.dencliv.crypto.block.algorithm;
 
-final class AESFunction implements AlgorithmFunction {
+public final class AES implements Algorithm {
     private static final int BLOCK_SIZE = 16;
     private static final int[] SBOX = new int[256];
     private static final int[] INVERSE_SBOX = new int[256];
@@ -22,7 +22,7 @@ final class AESFunction implements AlgorithmFunction {
     private final byte[] roundKeys;
     private final int rounds;
 
-    AESFunction(byte[] key) {
+    public AES(byte[] key) {
         if (key.length != 16 && key.length != 24 && key.length != 32) {
             throw new IllegalArgumentException("AES key must be 16, 24, or 32 bytes");
         }

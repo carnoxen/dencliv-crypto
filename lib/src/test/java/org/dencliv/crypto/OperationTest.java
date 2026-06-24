@@ -1,30 +1,60 @@
 package org.dencliv.crypto;
 
-import java.security.NoSuchAlgorithmException;
-
-import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-
 import org.junit.jupiter.api.Test;
 
-import static org.dencliv.crypto.block.algorithm.Algorithm.AES;
-import static org.dencliv.crypto.block.algorithm.Algorithm.ARIA;
-import static org.dencliv.crypto.block.algorithm.Algorithm.SEED;
-import static org.dencliv.crypto.block.operation.Operation.CBC;
-import static org.dencliv.crypto.block.operation.Operation.CCM;
-import static org.dencliv.crypto.block.operation.Operation.CTR;
-import static org.dencliv.crypto.block.operation.Operation.GCM;
-import static org.dencliv.crypto.block.operation.Operation.OFB;
-import static org.dencliv.crypto.block.padding.Padding.ISO10126;
-import static org.dencliv.crypto.block.padding.Padding.No;
-import static org.dencliv.crypto.block.padding.Padding.PKCS5;
+import org.dencliv.crypto.block.algorithm.AES;
+import org.dencliv.crypto.block.algorithm.ARIA;
+import org.dencliv.crypto.block.algorithm.Blowfish;
+import org.dencliv.crypto.block.algorithm.SEED;
+import org.dencliv.crypto.block.operation.CBC;
+import org.dencliv.crypto.block.operation.CCM;
+import org.dencliv.crypto.block.operation.CTR;
+import org.dencliv.crypto.block.operation.GCM;
+import org.dencliv.crypto.block.operation.OFB;
+import org.dencliv.crypto.block.padding.NoPadding;
+import org.dencliv.crypto.block.padding.PKCS5Padding;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class OperationTest {
+    @Test
+    void encryptsAndDecryptsBlowfishBlock() {
+        var algorithm = new Blowfish(new byte[8]);
+        var plaintext = new byte[8];
+        var ciphertext = new byte[8];
+        var decrypted = new byte[8];
+
+        algorithm.encryptBlock(plaintext, 0, ciphertext, 0);
+        algorithm.decryptBlock(ciphertext, 0, decrypted, 0);
+
+        assertArrayEquals(hex("4ef997456198dd78"), ciphertext);
+        assertArrayEquals(plaintext, decrypted);
+    }
+
+    @Test
+    void rejectsInvalidBlowfishKeySize() {
+        var shortKey = assertThrows(IllegalArgumentException.class, () -> new Blowfish(new byte[3]));
+        var longKey = assertThrows(IllegalArgumentException.class, () -> new Blowfish(new byte[57]));
+
+        assertEquals("Blowfish key must be 4 to 56 bytes", shortKey.getMessage());
+        assertEquals("Blowfish key must be 4 to 56 bytes", longKey.getMessage());
+    }
+
+    @Test
+    void rejectsBlowfishForAuthenticatedModes() {
+        var algorithm = new Blowfish(new byte[8]);
+
+        assertEquals(
+                "CCM requires a 16-byte block cipher",
+                assertThrows(IllegalArgumentException.class, () -> new CCM().encrypt(algorithm, new byte[7], new byte[0]))
+                        .getMessage());
+        assertEquals(
+                "GCM requires a 16-byte block cipher",
+                assertThrows(IllegalArgumentException.class, () -> new GCM().encrypt(algorithm, new byte[12], new byte[0]))
+                        .getMessage());
+    }
+
     @Test
     void encryptsAndDecryptsAriaBlocks() {
         var plaintext = hex("00112233445566778899aabbccddeeff");
@@ -40,7 +70,7 @@ class OperationTest {
         };
 
         for (var index = 0; index < keys.length; index++) {
-            var algorithm = ARIA.create(hex(keys[index]));
+            var algorithm = new ARIA(hex(keys[index]));
             var ciphertext = new byte[16];
             var decrypted = new byte[16];
 
@@ -54,14 +84,14 @@ class OperationTest {
 
     @Test
     void rejectsInvalidAriaKeySize() {
-        var exception = assertThrows(IllegalArgumentException.class, () -> ARIA.create(new byte[20]));
+        var exception = assertThrows(IllegalArgumentException.class, () -> new ARIA(new byte[20]));
 
         assertEquals("ARIA key must be 16, 24, or 32 bytes", exception.getMessage());
     }
 
     @Test
     void encryptsAndDecryptsSeedBlock() {
-        var algorithm = SEED.create(hex("00000000000000000000000000000000"));
+        var algorithm = new SEED(hex("00000000000000000000000000000000"));
         var plaintext = hex("000102030405060708090a0b0c0d0e0f");
         var ciphertext = new byte[16];
         var decrypted = new byte[16];
@@ -75,7 +105,7 @@ class OperationTest {
 
     @Test
     void encryptsAndDecryptsSeedCbc() {
-        var cipher = Library.getBlockCipher(SEED, CBC, PKCS5);
+        var cipher = Library.getBlockCipher(SEED.class, CBC.class, PKCS5Padding.class);
         var key = hex("000102030405060708090a0b0c0d0e0f");
         var iv = hex("101112131415161718191a1b1c1d1e1f");
         var plaintext = hex("00112233445566778899aabbccddeeff");
@@ -87,7 +117,7 @@ class OperationTest {
 
     @Test
     void encryptsAndDecryptsAesCbc() {
-        var cipher = Library.getBlockCipher(AES, CBC, PKCS5);
+        var cipher = Library.getBlockCipher(AES.class, CBC.class, PKCS5Padding.class);
         var key = hex("2b7e151628aed2a6abf7158809cf4f3c");
         var iv = hex("000102030405060708090a0b0c0d0e0f");
         var plaintext = hex("6bc1bee22e409f96e93d7e117393172a");
@@ -101,7 +131,7 @@ class OperationTest {
 
     @Test
     void encryptsAndDecryptsAesCtr() {
-        var cipher = Library.getBlockCipher(AES, CTR, No);
+        var cipher = Library.getBlockCipher(AES.class, CTR.class, NoPadding.class);
         var key = hex("2b7e151628aed2a6abf7158809cf4f3c");
         var counter = hex("f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
         var plaintext = hex("6bc1bee22e409f96e93d7e117393172aae2d8a57");
@@ -113,115 +143,57 @@ class OperationTest {
     }
 
     @Test
-    void encryptsAesCtrLikeJavaNoPadding() throws Exception {
-        var cipher = Library.getBlockCipher(AES, CTR, No);
-        var key = hex("2b7e151628aed2a6abf7158809cf4f3c");
-        var counter = hex("f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
-        var plaintext = hex("6bc1bee22e409f96e93d7e117393172aae2d8a57");
-        var fallback = cipher.getFallback();
-
-        fallback.init(
-                Cipher.ENCRYPT_MODE,
-                new SecretKeySpec(key, AES.name()),
-                new IvParameterSpec(counter));
-
-        assertEquals("AES/CTR/NoPadding", fallback.getAlgorithm());
-        assertArrayEquals(fallback.doFinal(plaintext), cipher.encrypt(key, counter, plaintext));
-    }
-
-    @Test
     void encryptsAndDecryptsAesOfb() {
-        var algorithm = AES.create(hex("2b7e151628aed2a6abf7158809cf4f3c"));
+        var algorithm = new AES(hex("2b7e151628aed2a6abf7158809cf4f3c"));
         var iv = hex("000102030405060708090a0b0c0d0e0f");
         var plaintext = hex("6bc1bee22e409f96e93d7e117393172a");
 
-        var ciphertext = OFB.encrypt(algorithm, iv, plaintext);
+        var operation = new OFB();
+        var ciphertext = operation.encrypt(algorithm, iv, plaintext);
 
         assertArrayEquals(hex("3b3fd92eb72dad20333449f8e83cfb4a"), ciphertext);
-        assertArrayEquals(plaintext, OFB.decrypt(algorithm, iv, ciphertext));
+        assertArrayEquals(plaintext, operation.decrypt(algorithm, iv, ciphertext));
     }
 
     @Test
     void encryptsAndDecryptsAesGcm() {
-        var algorithm = AES.create(new byte[16]);
+        var algorithm = new AES(new byte[16]);
         var iv = new byte[12];
         var plaintext = new byte[16];
 
-        var ciphertext = GCM.encrypt(algorithm, iv, plaintext);
+        var ciphertext = new GCM().encrypt(algorithm, iv, plaintext);
 
         assertArrayEquals(hex(
                 "0388dace60b6a392f328c2b971b2fe78"
                         + "ab6e47d42cec13bdf53a67b21257bddf"), ciphertext);
-        assertArrayEquals(plaintext, GCM.decrypt(algorithm, iv, ciphertext));
+        assertArrayEquals(plaintext, new GCM().decrypt(algorithm, iv, ciphertext));
     }
 
     @Test
     void encryptsAndDecryptsAesCcm() {
-        var algorithm = AES.create(hex("404142434445464748494a4b4c4d4e4f"));
+        var algorithm = new AES(hex("404142434445464748494a4b4c4d4e4f"));
         var nonce = hex("10111213141516");
         var plaintext = hex("20212223");
 
-        var ciphertext = CCM.encrypt(algorithm, nonce, plaintext);
+        var operation = new CCM();
+        var ciphertext = operation.encrypt(algorithm, nonce, plaintext);
 
         assertArrayEquals(hex("7162015b"), java.util.Arrays.copyOf(ciphertext, 4));
-        assertArrayEquals(plaintext, CCM.decrypt(algorithm, nonce, ciphertext));
+        assertArrayEquals(plaintext, operation.decrypt(algorithm, nonce, ciphertext));
     }
 
     @Test
     void rejectsModifiedAuthenticationTags() {
-        var algorithm = AES.create(new byte[16]);
-        var ciphertext = GCM.encrypt(algorithm, new byte[12], new byte[16]);
+        var algorithm = new AES(new byte[16]);
+        var operation = new GCM();
+        var ciphertext = operation.encrypt(algorithm, new byte[12], new byte[16]);
         ciphertext[ciphertext.length - 1] ^= 1;
 
         var exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> GCM.decrypt(algorithm, new byte[12], ciphertext));
+                () -> operation.decrypt(algorithm, new byte[12], ciphertext));
 
         assertEquals("Invalid authentication tag", exception.getMessage());
-    }
-
-    @Test
-    void createsCompatibleFallbackCipher() throws Exception {
-        var cipher = Library.getBlockCipher(AES, CBC, PKCS5);
-        var key = hex("2b7e151628aed2a6abf7158809cf4f3c");
-        var iv = hex("000102030405060708090a0b0c0d0e0f");
-        var plaintext = hex("6bc1bee22e409f96e93d7e117393172a");
-        var fallback = cipher.getFallback();
-
-        fallback.init(
-                Cipher.ENCRYPT_MODE,
-                new SecretKeySpec(key, AES.name()),
-                new IvParameterSpec(iv));
-
-        assertEquals("AES/CBC/PKCS5Padding", fallback.getAlgorithm());
-        assertArrayEquals(cipher.encrypt(key, iv, plaintext), fallback.doFinal(plaintext));
-    }
-
-    @Test
-    void interoperatesWithJavaIso10126Padding() throws Exception {
-        var cipher = Library.getBlockCipher(AES, CBC, ISO10126);
-        var key = hex("2b7e151628aed2a6abf7158809cf4f3c");
-        var iv = hex("000102030405060708090a0b0c0d0e0f");
-        var plaintext = hex("6bc1bee22e409f96e93d7e117393172aae2d8a57");
-        var fallback = cipher.getFallback();
-        var secretKey = new SecretKeySpec(key, AES.name());
-        var parameters = new IvParameterSpec(iv);
-
-        fallback.init(Cipher.DECRYPT_MODE, secretKey, parameters);
-        assertEquals("AES/CBC/ISO10126Padding", fallback.getAlgorithm());
-        assertArrayEquals(plaintext, fallback.doFinal(cipher.encrypt(key, iv, plaintext)));
-
-        fallback.init(Cipher.ENCRYPT_MODE, secretKey, parameters);
-        assertArrayEquals(plaintext, cipher.decrypt(key, iv, fallback.doFinal(plaintext)));
-    }
-
-    @Test
-    void rejectsUnsupportedFallbackTransformation() {
-        var cipher = Library.getBlockCipher(AES, CTR, PKCS5);
-
-        var exception = assertThrows(NoSuchAlgorithmException.class, cipher::getFallback);
-
-        assertEquals(NoSuchPaddingException.class, exception.getCause().getClass());
     }
 
     private static byte[] hex(String value) {

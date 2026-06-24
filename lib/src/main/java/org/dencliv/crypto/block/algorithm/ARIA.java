@@ -2,7 +2,7 @@ package org.dencliv.crypto.block.algorithm;
 
 import java.util.HexFormat;
 
-final class ARIAFunction implements AlgorithmFunction {
+public final class ARIA implements Algorithm {
     private static final int BLOCK_SIZE = 16;
     private static final byte[][] CONSTANTS = {
             hex("517cc1b727220a94fe13abe8fa9a6ee0"),
@@ -51,7 +51,7 @@ final class ARIAFunction implements AlgorithmFunction {
     private final byte[][] encryptionKeys;
     private final byte[][] decryptionKeys;
 
-    ARIAFunction(byte[] key) {
+    public ARIA(byte[] key) {
         if (key.length != 16 && key.length != 24 && key.length != 32) {
             throw new IllegalArgumentException("ARIA key must be 16, 24, or 32 bytes");
         }

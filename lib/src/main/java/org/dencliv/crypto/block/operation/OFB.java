@@ -1,10 +1,10 @@
 package org.dencliv.crypto.block.operation;
 
-import org.dencliv.crypto.block.algorithm.AlgorithmFunction;
+import org.dencliv.crypto.block.algorithm.Algorithm;
 
-final class OFBFunction implements OperationFunction {
+public final class OFB implements Operation {
     @Override
-    public byte[] encrypt(AlgorithmFunction algorithm, byte[] iv, byte[] input) {
+    public byte[] encrypt(Algorithm algorithm, byte[] iv, byte[] input) {
         var blockSize = algorithm.blockSize();
         if (iv.length != blockSize) {
             throw new IllegalArgumentException("IV must match the block size");
@@ -23,7 +23,7 @@ final class OFBFunction implements OperationFunction {
     }
 
     @Override
-    public byte[] decrypt(AlgorithmFunction algorithm, byte[] iv, byte[] input) {
+    public byte[] decrypt(Algorithm algorithm, byte[] iv, byte[] input) {
         return encrypt(algorithm, iv, input);
     }
 }
