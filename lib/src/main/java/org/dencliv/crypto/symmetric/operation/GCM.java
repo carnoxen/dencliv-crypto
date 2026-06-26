@@ -1,9 +1,9 @@
-package org.dencliv.crypto.block.operation;
+package org.dencliv.crypto.symmetric.operation;
 
 import java.security.MessageDigest;
 import java.util.Arrays;
 
-import org.dencliv.crypto.block.algorithm.Algorithm;
+import org.dencliv.crypto.symmetric.algorithm.Algorithm;
 
 public final class GCM implements Operation {
     private static final int BLOCK_SIZE = 16;

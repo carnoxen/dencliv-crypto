@@ -9,18 +9,18 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.dencliv.crypto.block.BlockCipher;
-import org.dencliv.crypto.block.algorithm.AES;
-import org.dencliv.crypto.block.algorithm.Blowfish;
-import org.dencliv.crypto.block.operation.CBC;
-import org.dencliv.crypto.block.operation.CTR;
-import org.dencliv.crypto.block.operation.GCM;
-import org.dencliv.crypto.block.operation.OFB;
-import org.dencliv.crypto.block.operation.Operation;
-import org.dencliv.crypto.block.padding.ISO10126Padding;
-import org.dencliv.crypto.block.padding.NoPadding;
-import org.dencliv.crypto.block.padding.Padding;
-import org.dencliv.crypto.block.padding.PKCS5Padding;
+import org.dencliv.crypto.symmetric.BlockCipher;
+import org.dencliv.crypto.symmetric.algorithm.AES;
+import org.dencliv.crypto.symmetric.algorithm.Blowfish;
+import org.dencliv.crypto.symmetric.operation.CBC;
+import org.dencliv.crypto.symmetric.operation.CTR;
+import org.dencliv.crypto.symmetric.operation.GCM;
+import org.dencliv.crypto.symmetric.operation.OFB;
+import org.dencliv.crypto.symmetric.operation.Operation;
+import org.dencliv.crypto.symmetric.padding.ISO10126Padding;
+import org.dencliv.crypto.symmetric.padding.NoPadding;
+import org.dencliv.crypto.symmetric.padding.PKCS5Padding;
+import org.dencliv.crypto.symmetric.padding.Padding;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -55,7 +55,7 @@ class FallbackTest {
 
     @Test
     void encryptsBlowfishCbcLikeJava() throws Exception {
-        var library = Library.getBlockCipher(Blowfish.class, CBC.class, PKCS5Padding.class);
+        var library = Crypto.getBlockCipher(Blowfish.class, CBC.class, PKCS5Padding.class);
         var key = hex("0123456789abcdeff0e1d2c3b4a59687");
         var iv = hex("fedcba9876543210");
         var plaintext = hex("37363534333231204e6f77206973207468652074696d6520666f7220");
@@ -74,7 +74,7 @@ class FallbackTest {
 
     @Test
     void encryptsAesCtrLikeJavaNoPadding() throws Exception {
-        var library = Library.getBlockCipher(AES.class, CTR.class, NoPadding.class);
+        var library = Crypto.getBlockCipher(AES.class, CTR.class, NoPadding.class);
         var key = hex("2b7e151628aed2a6abf7158809cf4f3c");
         var counter = hex("f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
         var plaintext = hex("6bc1bee22e409f96e93d7e117393172aae2d8a57");
@@ -91,7 +91,7 @@ class FallbackTest {
 
     @Test
     void createsCompatibleFallbackCipher() throws Exception {
-        var library = Library.getBlockCipher(AES.class, CBC.class, PKCS5Padding.class);
+        var library = Crypto.getBlockCipher(AES.class, CBC.class, PKCS5Padding.class);
         var key = hex("2b7e151628aed2a6abf7158809cf4f3c");
         var iv = hex("000102030405060708090a0b0c0d0e0f");
         var plaintext = hex("6bc1bee22e409f96e93d7e117393172a");
@@ -108,7 +108,7 @@ class FallbackTest {
 
     @Test
     void interoperatesWithJavaIso10126Padding() throws Exception {
-        var library = Library.getBlockCipher(AES.class, CBC.class, ISO10126Padding.class);
+        var library = Crypto.getBlockCipher(AES.class, CBC.class, ISO10126Padding.class);
         var key = hex("2b7e151628aed2a6abf7158809cf4f3c");
         var iv = hex("000102030405060708090a0b0c0d0e0f");
         var plaintext = hex("6bc1bee22e409f96e93d7e117393172aae2d8a57");
@@ -126,7 +126,7 @@ class FallbackTest {
 
     @Test
     void rejectsUnsupportedFallbackTransformation() {
-        var library = Library.getBlockCipher(AES.class, CTR.class, PKCS5Padding.class);
+        var library = Crypto.getBlockCipher(AES.class, CTR.class, PKCS5Padding.class);
 
         var exception = assertThrows(NoSuchAlgorithmException.class, library::getFallback);
 
@@ -138,7 +138,7 @@ class FallbackTest {
             Class<? extends Padding> padding,
             byte[] plaintext,
             byte[] iv) throws Exception {
-        var library = Library.getBlockCipher(AES.class, operation, padding);
+        var library = Crypto.getBlockCipher(AES.class, operation, padding);
         var javaCiphertext = crypt(library, Cipher.ENCRYPT_MODE, iv, plaintext);
         var libraryCiphertext = library.encrypt(KEY, iv, plaintext);
 
@@ -153,7 +153,7 @@ class FallbackTest {
             Class<? extends Padding> padding,
             byte[] plaintext,
             byte[] iv) throws Exception {
-        var library = Library.getBlockCipher(AES.class, operation, padding);
+        var library = Crypto.getBlockCipher(AES.class, operation, padding);
         var libraryCiphertext = library.encrypt(KEY, iv, plaintext);
         var javaCiphertext = crypt(library, Cipher.ENCRYPT_MODE, iv, plaintext);
 

@@ -1,13 +1,13 @@
-package org.dencliv.crypto.block;
+package org.dencliv.crypto.symmetric;
 
 import java.security.NoSuchAlgorithmException;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 
-import org.dencliv.crypto.block.algorithm.Algorithm;
-import org.dencliv.crypto.block.operation.Operation;
-import org.dencliv.crypto.block.padding.Padding;
+import org.dencliv.crypto.symmetric.algorithm.Algorithm;
+import org.dencliv.crypto.symmetric.operation.Operation;
+import org.dencliv.crypto.symmetric.padding.Padding;
 
 public final class BlockCipher {
     private final Class<? extends Algorithm> algorithm;

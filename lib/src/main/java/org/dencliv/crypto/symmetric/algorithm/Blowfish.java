@@ -1,4 +1,4 @@
-package org.dencliv.crypto.block.algorithm;
+package org.dencliv.crypto.symmetric.algorithm;
 
 import java.nio.ByteBuffer;
 import java.util.Base64;

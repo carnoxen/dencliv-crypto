@@ -2,20 +2,21 @@ package org.dencliv.crypto;
 
 import org.junit.jupiter.api.Test;
 
-import org.dencliv.crypto.block.algorithm.AES;
-import org.dencliv.crypto.block.algorithm.ARIA;
-import org.dencliv.crypto.block.algorithm.Blowfish;
-import org.dencliv.crypto.block.algorithm.SEED;
-import org.dencliv.crypto.block.operation.CBC;
-import org.dencliv.crypto.block.operation.CCM;
-import org.dencliv.crypto.block.operation.CTR;
-import org.dencliv.crypto.block.operation.GCM;
-import org.dencliv.crypto.block.operation.OFB;
-import org.dencliv.crypto.block.padding.NoPadding;
-import org.dencliv.crypto.block.padding.PKCS5Padding;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.dencliv.crypto.symmetric.algorithm.AES;
+import org.dencliv.crypto.symmetric.algorithm.ARIA;
+import org.dencliv.crypto.symmetric.algorithm.Blowfish;
+import org.dencliv.crypto.symmetric.algorithm.SEED;
+import org.dencliv.crypto.symmetric.operation.CBC;
+import org.dencliv.crypto.symmetric.operation.CCM;
+import org.dencliv.crypto.symmetric.operation.CTR;
+import org.dencliv.crypto.symmetric.operation.GCM;
+import org.dencliv.crypto.symmetric.operation.OFB;
+import org.dencliv.crypto.symmetric.padding.NoPadding;
+import org.dencliv.crypto.symmetric.padding.PKCS5Padding;
 
 class OperationTest {
     @Test
@@ -105,7 +106,7 @@ class OperationTest {
 
     @Test
     void encryptsAndDecryptsSeedCbc() {
-        var cipher = Library.getBlockCipher(SEED.class, CBC.class, PKCS5Padding.class);
+        var cipher = Crypto.getBlockCipher(SEED.class, CBC.class, PKCS5Padding.class);
         var key = hex("000102030405060708090a0b0c0d0e0f");
         var iv = hex("101112131415161718191a1b1c1d1e1f");
         var plaintext = hex("00112233445566778899aabbccddeeff");
@@ -117,7 +118,7 @@ class OperationTest {
 
     @Test
     void encryptsAndDecryptsAesCbc() {
-        var cipher = Library.getBlockCipher(AES.class, CBC.class, PKCS5Padding.class);
+        var cipher = Crypto.getBlockCipher(AES.class, CBC.class, PKCS5Padding.class);
         var key = hex("2b7e151628aed2a6abf7158809cf4f3c");
         var iv = hex("000102030405060708090a0b0c0d0e0f");
         var plaintext = hex("6bc1bee22e409f96e93d7e117393172a");
@@ -131,7 +132,7 @@ class OperationTest {
 
     @Test
     void encryptsAndDecryptsAesCtr() {
-        var cipher = Library.getBlockCipher(AES.class, CTR.class, NoPadding.class);
+        var cipher = Crypto.getBlockCipher(AES.class, CTR.class, NoPadding.class);
         var key = hex("2b7e151628aed2a6abf7158809cf4f3c");
         var counter = hex("f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
         var plaintext = hex("6bc1bee22e409f96e93d7e117393172aae2d8a57");

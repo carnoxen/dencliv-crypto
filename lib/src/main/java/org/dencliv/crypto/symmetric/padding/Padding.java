@@ -1,4 +1,4 @@
-package org.dencliv.crypto.block.padding;
+package org.dencliv.crypto.symmetric.padding;
 
 public interface Padding {
     byte[] add(byte[] input, int blockSize);

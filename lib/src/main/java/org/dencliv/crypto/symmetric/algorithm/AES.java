@@ -1,4 +1,4 @@
-package org.dencliv.crypto.block.algorithm;
+package org.dencliv.crypto.symmetric.algorithm;
 
 public final class AES implements Algorithm {
     private static final int BLOCK_SIZE = 16;

@@ -1,8 +1,8 @@
-package org.dencliv.crypto.block.operation;
+package org.dencliv.crypto.symmetric.operation;
 
 import java.util.Arrays;
 
-import org.dencliv.crypto.block.algorithm.Algorithm;
+import org.dencliv.crypto.symmetric.algorithm.Algorithm;
 
 public final class CBC implements Operation {
     @Override

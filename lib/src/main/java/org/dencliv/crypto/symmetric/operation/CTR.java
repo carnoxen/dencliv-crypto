@@ -1,6 +1,6 @@
-package org.dencliv.crypto.block.operation;
+package org.dencliv.crypto.symmetric.operation;
 
-import org.dencliv.crypto.block.algorithm.Algorithm;
+import org.dencliv.crypto.symmetric.algorithm.Algorithm;
 
 public final class CTR implements Operation {
     @Override
